@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculadora de Cone</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            background-color: black;
+            color: white;
+            font-family: sans-serif;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        <p id="volume"></p>
+        <p id="area"></p>
+        <p id="areal"></p>
+        <p id="areab"></p>
+        <p id="raio"></p>
+        <p id="altura"></p>
+        <p id="geratriz"></p>
+        <p id="diametro"></p>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.175.0/build/three.module.js",
+                "ascii": "https://unpkg.com/three@0.175.0/examples/jsm/effects/AsciiEffect.js",
+                "trackball": "https://unpkg.com/three@0.175.0/examples/jsm/controls/TrackballControls.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { AsciiEffect } from 'ascii';
+        import { TrackballControls } from 'trackball';
+
+        
+        let raio = parseFloat(prompt("Raio (coloque 0 se não souber):"));
+        let diametro = parseFloat(prompt("Diâmetro (coloque 0 se não souber):"));
+        let altura = parseFloat(prompt("Altura (coloque 0 se não souber):"));
+        let geratriz = parseFloat(prompt("Geratriz (coloque 0 se não souber):"));
+
+        
+        if (raio === 0 && diametro !== 0) raio = diametro / 2;
+        if (diametro === 0 && raio !== 0) diametro = raio * 2;
+        if (altura === 0 && geratriz !== 0 && raio !== 0) altura = Math.sqrt(geratriz ** 2 - raio ** 2);
+        if (geratriz === 0 && altura !== 0 && raio !== 0) geratriz = Math.sqrt(altura ** 2 + raio ** 2);
+
+        if(raio === 0 && diametro === 0 && geratriz !== 0 && altura !== 0){
+            raio = Math.sqrt(geratriz ** 2 - altura ** 2);
+            diametro = raio * 2;
+        }
+   
+        if (!raio || !altura || !geratriz) {
+            alert("Valores insuficientes para criar o cone. Por favor, recarregue a página e insira pelo menos raio + altura ou raio + geratriz.");
+            throw new Error("Dados insuficientes.");
+        }
+        
+        
+        if (diametro !== raio * 2 ){
+            alert("Valor do Diâmetro incorreto. Por favor, recarregue a página e insira novamente.")
+            throw new Error('Diâmetro com valor errado.');
+            
+        }
+       
+        
+        if (geratriz !== Math.sqrt(raio ** 2 + altura ** 2)){
+            alert("Valor da Geratriz esta errado. Por favor recarregue a página e insira novamente.")
+            throw new Error("Geratriz com valor errado.");
+        }
+
+
+        const volume = (Math.PI * raio ** 2 * altura) / 3;
+        const area = Math.PI * raio * (raio + geratriz);
+        const areal = Math.PI * raio * geratriz
+        const areab = Math.PI * (raio ** 2)
+
+        document.getElementById("volume").textContent = "Volume: " + volume.toFixed(2) + " | " + Math.round(volume / Math.PI) + 'π';
+        document.getElementById("area").textContent = "Área: " + area.toFixed(2) + " | " + Math.round(area / Math.PI) + 'π' ;
+        document.getElementById("areal").textContent = "Área Lateral: " + areal.toFixed(2) + " | " + Math.round(areal / Math.PI) + "π";
+        document.getElementById("areab").textContent = "Área da Base: " + areab.toFixed(2) + " | " + Math.round(areab / Math.PI) + "π";
+        document.getElementById("raio").textContent = "Raio: " + raio.toFixed(2);
+        document.getElementById("altura").textContent = "Altura: " + altura.toFixed(2);
+        document.getElementById("geratriz").textContent = "Geratriz: " + geratriz.toFixed(2);
+        document.getElementById("diametro").textContent = "Diâmetro: " + diametro.toFixed(2);
+
+        let camera, controls, scene, renderer, effect;
+
+        let cone, plane;
+
+        const start = Date.now();
+
+        init();
+
+        function init() {
+
+            camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
+            camera.position.y = 150;
+            camera.position.z = 500;
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color( 0, 0, 0 );
+
+            const pointLight1 = new THREE.PointLight( 0xffffff, 3, 0, 0 );
+            pointLight1.position.set( 500, 500, 500 );
+            scene.add( pointLight1 );
+
+            const pointLight2 = new THREE.PointLight( 0xffffff, 1, 0, 0 );
+            pointLight2.position.set( - 500, - 500, - 500 );
+            scene.add( pointLight2 );
+
+            cone = new THREE.Mesh( new THREE.ConeGeometry( raio, altura, 322), new THREE.MeshPhongMaterial( { flatShading: true } ) );
+            scene.add( cone );
+
+            // Plane
+
+            plane = new THREE.Mesh( new THREE.PlaneGeometry( 400, 400 ), new THREE.MeshBasicMaterial( { color: 0xe0e0e0 } ) );
+            plane.position.y = - 200;
+            plane.rotation.x = - Math.PI / 2;
+            scene.add( plane );
+
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            renderer.setAnimationLoop( animate );
+
+            effect = new AsciiEffect( renderer, ' .:-+*=%@#', { invert: true } );
+            effect.setSize( window.innerWidth, window.innerHeight );
+            effect.domElement.style.color = 'white';
+            effect.domElement.style.backgroundColor = 'black';
+
+
+            document.body.appendChild( effect.domElement );
+
+            controls = new TrackballControls( camera, effect.domElement );
+
+            //
+
+            window.addEventListener( 'resize', onWindowResize );
+
+        }
+
+        function onWindowResize() {
+
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            effect.setSize( window.innerWidth, window.innerHeight );
+
+        }
+
+        //
+
+        function animate() {
+
+            const timer = Date.now() - start;
+
+            cone.position.y = Math.abs( Math.sin( timer * 0.002 ) ) * 150;
+           
+            
+
+            controls.update();
+
+            effect.render( scene, camera );
+    }
+        
+    
+
+    
+    
+    
+
+</script>
+
+</body>
+</html>
