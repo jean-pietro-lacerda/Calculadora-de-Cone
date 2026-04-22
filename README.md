@@ -36,6 +36,15 @@ Para rodar perfeitamente:
 4. Os resultados matemáticos precisos aparecerão no canto superior esquerdo da tela.
 5. Clique e arraste o mouse pela tela para explorar o cone em 3D!
 
+Feito para trabalho escolar no Instituto Federal de Vitoria de Santo Antão, calculos e funções para o cone feito por mim e o front-end a outra pessoa que colaborou no trabalho.
 
 
-Feito em colaboração para trabalho escolar no Instituto Federal de Vitoria de Santo Antão/
+
+
+
+
+
+
+
+
+
